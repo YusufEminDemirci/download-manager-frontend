@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" type="text/css" href="loading-bar.css" />
+
+    <title>Download Manager</title>
+</head>
+
+<body>
+
+    <header>
+        <h1>Download Manager</h1>
+        <div>
+            <div class="input-div" id="add-download">
+                <input type="text" class="input-text" id="add-url-text" placeholder="Url" />
+                <button class="input-button" id="add-button">Add Download</button>
+            </div>
+            <div class="input-div" id="mark-download">
+                <input type="text" class="input-text" id="mark-url-text" placeholder="Url / Url1,Url2,Url3,..." />
+                <button class="input-button" id="mark-button">Mark Url</button>
+            </div>
+        </div>
+        <div id="device-info">
+            <label id="device-ip"></label>
+            <div id="device-status">
+                <label id="device-disk-capacity"></label>
+                <label id="device-disk-cached"></label>
+                <label id="device-disk-timestamp"></label>
+            </div>
+        </div>
+
+    </header>
+    <hr>
+
+    <section class="section" id="error-downloads">
+        <label id="error-downloads-label">Error</label>
+        <div class="item-container" id="error">
+        </div>
+    </section>
+
+    <section class="section" id="active-downloads">
+        <label id="active-downloads-label">Active</label>
+        <div class="item-container" id="active">
+        </div>
+    </section>
+
+    <section class="section" id="finished-downloads">
+        <label id="finished-downloads-label">Finished</label>
+        <div class="item-container" id="finished">
+        </div>
+    </section>
+
+    <footer>İŞİMİZBU A.Ş.</footer>
+
+    <script src="loading-bar.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
