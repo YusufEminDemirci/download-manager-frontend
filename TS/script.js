@@ -12,7 +12,7 @@ let addUrlButton = document.getElementById("add-button");
 let addUrlText = document.getElementById("add-url-text");
 let markUrlButton = document.getElementById("mark-button");
 let markUrlText = document.getElementById("mark-url-text");
-let deviceIp = document.getElementById("device-ip");
+let deviceIpLabel = document.getElementById("device-ip");
 let deviceDiskCapacity = document.getElementById("device-disk-capacity");
 let deviceDiskCached = document.getElementById("device-disk-cached");
 let deviceDiskTimestamp = document.getElementById("device-disk-timestamp");
@@ -32,209 +32,231 @@ let headers = {
     "Content-Type": "application/json",
     "Accept": "application/json",
 };
-function createData(data) {
-    let download = data["download"];
-    let display = "none";
-    let progress = "0";
-    if (download !== null) {
-        download = data["download"]["status"];
-        progress = String(calcDownloadProgress(data["download"]));
-        if (progress !== "NaN") {
-            display = "block";
-        }
+class DownloadList {
+    constructor() {
+        this.data = [];
+        this.progress = "0";
+        this.download;
+        this.display = "none";
     }
-    let src = getDataExtension(data["url"]);
-    let obj = `<img class="file-type" src="${src}" alt="type-img"></img><div class='item-detail'>
-    <label class="labelArea" style='padding-top:20px'>URL: ${data["url"]}</label>
-    <label class="labelArea">GID: ${data["gid"]}</label>
-    <label class="labelArea">PRIORITY: ${data["priority"]}</label>
-    <label class="labelArea">STATUS: ${data["status"]}</label>
-    <label class="labelArea">ADDED: ${data["added"]}</label>
-    <label class="labelArea">DOWNLOAD: ${download}</label>
-    <label class="labelArea">FILE: ${data["file"]}</label>
-    <label class="labelArea">PATH: ${data["path"]}</label>
-    <label class="labelArea">SIZE: ${data["size"]}</label>
-    <label class="labelArea" style='padding-bottom:20px'>USING: ${data["using"]}</label></div>
-    <div class="progress-container" style="display:${display}"><div class="progress" id="${data["gid"]}-progress" style="width:${progress}%">%${progress}</div></div>
-    `;
-    return obj;
-}
-function getDataExtension(url) {
-    let fileExtension = url.split(".")[url.split(".").length - 1];
-    if (fileExtension === "mkv" || fileExtension === "mp4") {
-        return "video-logo.png";
+    getDownloads() {
+        this.getList();
+        this.updateActiveDownloadProgress();
     }
-    else if (fileExtension === "jpg" || fileExtension === "png" || fileExtension === "jpeg" || fileExtension === "svg") {
-        return "photo-logo.png";
-    }
-    else {
-        return "";
-    }
-}
-function calcDownloadProgress(data) {
-    let totalLength = data["totalLength"];
-    let downloadedLength = data["completedLength"];
-    let progress = (downloadedLength / totalLength) * 100;
-    let progressText = progress.toFixed(2);
-    return progressText;
-}
-function updateActiveDownloadProgress() {
-    activeList.forEach(element => {
-        let item = document.getElementById(`${element["gid"]}-progress`);
-        let progress = calcDownloadProgress(element["download"]);
-        if (item !== null) {
-            item.innerText = `%${progress}`;
-            item.style.width = `${progress}%`;
-        }
-    });
-}
-function getDeviceIp() {
-    let deviceIpBasic = mainUrl.split("//")[1];
-    deviceIp.innerText = `IP: ${deviceIpBasic}`;
-}
-////////////////////////////////////////////////////
-function getDownloads() {
-    return __awaiter(this, void 0, void 0, function* () {
-        let response = yield fetch(statusUrl);
-        if (response.status === 200) {
-            let data = yield response.json();
-            return data;
-        }
-        return;
-    });
-}
-function addDownload(url) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let data = { url: `${url}` };
-        let response = yield fetch(addDownloadUrl, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(data),
+    getList() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let response = yield fetch(statusUrl);
+            if (response.status === 200) {
+                this.data = yield response.json();
+                this.createItem(this.data);
+            }
         });
-        if (response.status === 200) {
-            alert(`"${url}" added to download list!`);
-            location.reload();
-        }
-        else {
-            alert(`An error occurred while adding the "${url}" to the download list!`);
-        }
-    });
-}
-function markDownload(urls) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let data = { urls: urls };
-        let response = yield fetch(markUrl, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(data),
+    }
+    createItem(data) {
+        this.data.forEach((element) => {
+            if (!gidList.includes(element.gid)) {
+                item = document.createElement("div");
+                item.classList.add("item");
+                gidList.push(element.gid);
+                item.setAttribute("id", element.gid);
+                item.innerHTML = this.createItemData(element);
+            }
+            if (element.status === 0) {
+                activeTab.appendChild(item);
+            }
+            else if (element.status === 1) {
+                activeTab.appendChild(item);
+            }
+            else if (element.status === 2) {
+                finishedTab.appendChild(item);
+            }
+            else if (element.status === 3) {
+                errorTab.appendChild(item);
+            }
+            else if (element.status === 4) {
+                errorTab.appendChild(item);
+            }
         });
-        if (response.status === 200) {
-            alert(`"${urls.length}" url marked!`);
-            location.reload();
+    }
+    createItemData(element) {
+        let display = "none";
+        let progress = "0";
+        if (element.download !== null) {
+            progress = this.calcProgress(element.download);
+            if (progress !== "NaN") {
+                display = "block";
+            }
+        }
+        let src = this.fileExtension(element.url);
+        let obj = `
+        <img class="file-type" src="${src}" alt="type-img"></img>
+        <div class='item-detail'>
+            <label class="labelArea" style='padding-top:20px'>URL: ${element.url}</label>
+            <label class="labelArea">GID: ${element.gid}</label>
+            <label class="labelArea">PRIORITY: ${element.priority}</label>
+            <label class="labelArea">STATUS: ${element.status}</label>
+            <label class="labelArea">ADDED: ${element.added}</label>
+            <label class="labelArea">DOWNLOAD: ${element.download}</label>
+            <label class="labelArea">FILE: ${element.file}</label>
+            <label class="labelArea">PATH: ${element.path}</label>
+            <label class="labelArea">SIZE: ${element.size}</label>
+            <label class="labelArea" style='padding-bottom:20px'>USING: ${element.using}</label>
+        </div>
+            <div class="progress-container" style="display:${display}">
+            <div class="progress" id="${element.gid}-progress" style="width:${progress}%">%${progress}</div>
+        </div>
+        `;
+        return obj;
+    }
+    calcProgress(element) {
+        let totalLength = element.totalLength;
+        let downloadedLength = element.completedLength;
+        let progress = ((downloadedLength / totalLength) * 100).toFixed(2).toString();
+        return progress;
+    }
+    fileExtension(url) {
+        let fileExtension = url.split(".")[url.split(".").length - 1];
+        if (fileExtension === "mkv" || fileExtension === "mp4") {
+            return "video-logo.png";
+        }
+        else if (fileExtension === "jpg" || fileExtension === "png" || fileExtension === "jpeg" || fileExtension === "svg") {
+            return "photo-logo.png";
         }
         else {
-            alert(`An error occurred while marking the "${urls.length}" url!`);
+            return "";
         }
-    });
+    }
+    updateActiveDownloadProgress() {
+        activeList.forEach(element => {
+            let item = document.getElementById(`${element.gid}-progress`);
+            if (element.download !== null && item !== null) {
+                let progress = this.calcProgress(element.download);
+                item.innerText = `%${progress}`;
+                item.style.width = `${progress}%`;
+            }
+        });
+    }
 }
-function getDeviceStatus() {
-    return __awaiter(this, void 0, void 0, function* () {
-        let response = yield fetch(deviceInfoUrl);
-        if (response.status === 200) {
-            let data = yield response.json();
-            let total_capacity = data["disk"]["total_capacity"];
-            let cached = data["disk"]["cached"];
-            let year = data["timestamp"].split("T")[0].split("-");
-            year = year[2] + "/" + year[1] + "/" + year[0];
-            let hour = data["timestamp"].split("T")[1].split(".")[0];
-            let timestamp = year + " " + hour;
-            deviceDiskCapacity.innerText = `T. CAPACITY: ${total_capacity}`;
-            deviceDiskCached.innerText = `CACHED: ${cached}`;
-            deviceDiskTimestamp.innerText = `${timestamp}`;
+class AddDownload {
+    constructor(url) {
+        this.url = url;
+        this.data = { url: `${this.url}` };
+    }
+    addDownload() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let response = yield fetch(addDownloadUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(this.data),
+            });
+            if (response.status === 200) {
+                alert(`"${this.url}" added to download list!`);
+                location.reload();
+            }
+            else {
+                alert(`An error occurred while adding the "${this.url}" to the download list!`);
+            }
+        });
+    }
+}
+class MarkDownload {
+    constructor(urls) {
+        this.urls = urls;
+        this.data = { urls: this.urls };
+    }
+    markDownload() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let response = yield fetch(markUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(this.data),
+            });
+            if (response.status === 200) {
+                alert(`"${this.urls.length}" url marked!`);
+                location.reload();
+            }
+            else {
+                alert(`An error occurred while marking the "${this.urls.length}" url!`);
+            }
+        });
+    }
+}
+class DeviceIp {
+    constructor() {
+        this.deviceIP = mainUrl;
+    }
+    getDeviceIp() {
+        return this.deviceIP;
+    }
+}
+class DeviceStatus {
+    constructor() {
+        this.deviceStatus = {};
+    }
+    getDeviceStatus() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let response = yield fetch(deviceInfoUrl);
+            if (response.status === 200) {
+                this.deviceStatus = yield response.json();
+                return this.deviceStatus;
+            }
+            else {
+                return null;
+            }
+        });
+    }
+}
+class DeviceInfo {
+    constructor(deviceIp, deviceStatus) {
+        this.deviceIp = deviceIp;
+        this.deviceStatus = deviceStatus;
+    }
+    getDeviceInfo() {
+        if ((this.deviceIp !== null && this.deviceIp !== undefined) && (this.deviceStatus !== null && this.deviceStatus !== undefined)) {
+            deviceIpLabel.innerText = `IP: ${this.deviceIp}`;
+            deviceDiskCapacity.innerText = `T. CAPACITY: ${this.deviceStatus.disk.total_capacity}`;
+            deviceDiskCached.innerText = `CACHED: ${this.deviceStatus.disk.cached}`;
+            deviceDiskTimestamp.innerText = this.parseTimestamp(this.deviceStatus.timestamp);
         }
         else {
-            alert(`An error occurred while getting device information !`);
+            alert(`An error occurred while getting device information!`);
         }
-    });
-}
-function createDownloadItem(data) {
-    data.forEach((element) => {
-        if (!gidList.includes(element["gid"])) {
-            item = document.createElement("div");
-            item.classList.add("item");
-            gidList.push(element["gid"]);
-            item.setAttribute("id", element["gid"]);
-            return element;
+    }
+    parseTimestamp(timestamp) {
+        if (timestamp !== null) {
+            let year = timestamp.split("T")[0].split("-");
+            let date = `${year[0]}/${year[1]}/${year[2]}`;
+            let hour = timestamp.split("T")[1].split(".")[0];
+            timestamp = date + " - " + hour;
+            return `${timestamp}`;
         }
         else {
-            return null;
-        }
-    });
-}
-function displayDownloads(element) {
-    if (element !== null) {
-        item.innerHTML = createData(element);
-        if (element["status"] === 0) {
-            activeTab.appendChild(item);
-        }
-        else if (element["status"] === 1) {
-            activeTab.appendChild(item);
-        }
-        else if (element["status"] === 2) {
-            finishedTab.appendChild(item);
-        }
-        else if (element["status"] === 3) {
-            errorTab.appendChild(item);
-        }
-        else if (element["status"] === 4) {
-            errorTab.appendChild(item);
+            console.error("An error occurred while parsing timestamp!");
+            return timestamp;
         }
     }
 }
+function main() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let deviceIp = new DeviceIp();
+        let deviceStatus = new DeviceStatus();
+        window.setInterval(function () {
+            return __awaiter(this, void 0, void 0, function* () {
+                new DownloadList().getDownloads();
+                new DownloadList().updateActiveDownloadProgress();
+                new DeviceInfo(deviceIp.getDeviceIp(), yield deviceStatus.getDeviceStatus()).getDeviceInfo();
+            });
+        }, 1000);
+    });
+}
+main();
 addUrlButton.addEventListener('click', function () {
-    addDownload(addUrlText.value);
+    let add = new AddDownload(addUrlText.value);
+    add.addDownload();
 });
 markUrlButton.addEventListener('click', function () {
     let markList = markUrlText.value.split(",");
-    markDownload(markList);
+    let mark = new MarkDownload(markList);
+    mark.markDownload();
 });
-function main() {
-    window.setInterval(function () {
-        return __awaiter(this, void 0, void 0, function* () {
-            let data = getDownloads();
-            if (data !== null) {
-                let element = createDownloadItem(yield data);
-                if (element !== null) {
-                    // displayDownloads(element);
-                }
-            }
-        });
-    }, 1000);
-}
-main();
-class DownloadManager {
-    constructor(status) {
-        this.status = status;
-    }
-    getStatus() {
-        console.log(this.status);
-    }
-    setStatus(status) {
-        this.status = status;
-    }
-}
-let data = {
-    "url": "https://deneme.mp4",
-    "gid": "123abc4567def",
-    "priority": 2,
-    "status": 4,
-    "added": "1111-22-33T44:55:66.778899",
-    "download": null,
-    "file": null,
-    "path": null,
-    "size": "250 MB",
-    "using": false
-};
-DownloadManager.prototype.setStatus(data);
-DownloadManager.prototype.getStatus();
 //# sourceMappingURL=script.js.map

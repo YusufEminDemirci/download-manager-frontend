@@ -40,7 +40,7 @@ interface Uris {
     status: string;
     uri:    string;
 }
-interface DeviceInfo {
+interface DeviceInformation {
     name:        string;
     description: string;
     disk:        Disk;
@@ -50,6 +50,14 @@ interface Disk {
     total_capacity: string;
     cached:         string;
 }
+
+interface IP{
+    getDeviceIp(): string;
+}
+interface STATUS{
+    getDeviceStatus(): Promise<DeviceInformation | null>;
+}
+
 
 let addUrlButton = <HTMLInputElement>document.getElementById("add-button");
 let addUrlText = <HTMLInputElement>document.getElementById("add-url-text");
@@ -67,8 +75,8 @@ let activeTab = <HTMLInputElement>document.getElementById("active");
 let finishedTab = <HTMLInputElement>document.getElementById("finished");
 let item: HTMLDivElement;
 
-let gidList: any[]= [];
-let activeList: any[] = [];
+let gidList: string[]= [];
+let activeList: Status[] = [];
 
 const mainUrl = "http://127.0.0.1:6802";
 const deviceInfoUrl = new URL(`${mainUrl}/`).toString();
@@ -81,277 +89,254 @@ let headers = {
     "Content-Type": "application/json",
     "Accept": "application/json",
 };
-class Downloads{
-    private data:Array<Status>;
-    private element:Status;
-
-    constructor(){
-        this.data = [];
-        this.element = {} as Status;
-    }
+class DownloadList{
+    data: Status[];
+    progress:string;
+    download:Download|undefined;
+    display:string;
     
-    private async getDownloads():Promise<Array<Status> | null> {
+    constructor(){
+        this.data = [] as Status[];
+        this.progress = "0";
+        this.download;
+        this.display = "none";
+    }
+
+    public getDownloads(){
+        this.getList();
+        this.updateActiveDownloadProgress();
+    }
+
+    private async getList() {
         let response:Response = await fetch(statusUrl);
         if (response.status === 200) {
             this.data = await response.json();
-            return this.data;
-        }
-        else{
-            return null;
+            this.createItem(this.data);
         }
     }
 
-    private createDownloadItem():Status | null{
-        if(this.data !== null){
-            this.data.forEach((element:Status) => {
-                if (!gidList.includes(element.gid)) {
-                    item = document.createElement("div");
-                    item.classList.add("item");
-                    gidList.push(element.gid);
-                    item.setAttribute("id", element.gid);
-                    this.element = element;
-                    return this.element;
-                }
-                else{
-                    return null;
-                }
-            })
-        }
-        return null;
-    }
-    
-    private createData(element:Status):string|null {
-
-        if(element !== null){
-            let download = this.element.download;
-            let display = "none";
-            let progress = "0";
-        
-            if (download !== null) {
-                progress = String(this.calcDownloadProgress(element));
-                if (progress !== "NaN") {
-                    display = "block";
-                }
+    private createItem(data:Status[]):void{
+        this.data.forEach((element:Status) => {
+            if (!gidList.includes(element.gid)) {
+                item = document.createElement("div");
+                item.classList.add("item");
+                gidList.push(element.gid);
+                item.setAttribute("id", element.gid);
+                item.innerHTML = this.createItemData(element);
             }
-        
-            let src:string|null = this.getDataExtension(element.url);
-        
-            let obj:string = `<img class="file-type" src="${src}" alt="type-img"></img><div class='item-detail'>
+
+            if (element.status === 0) {
+                activeTab.appendChild(item);
+            } else if (element.status === 1) {
+                activeTab.appendChild(item);
+            } else if (element.status === 2) {
+                finishedTab.appendChild(item);
+            } else if (element.status === 3) {
+                errorTab.appendChild(item);
+            } else if (element.status === 4) {
+                errorTab.appendChild(item);
+            }
+        })
+    }
+
+    private createItemData(element:Status):string {
+
+        let display = "none";
+        let progress = "0";
+
+        if (element.download !== null) {
+            progress = this.calcProgress(element.download);
+            if (progress !== "NaN") {
+                display = "block";
+            }
+        }
+
+        let src = this.fileExtension(element.url);
+
+        let obj = `
+        <img class="file-type" src="${src}" alt="type-img"></img>
+        <div class='item-detail'>
             <label class="labelArea" style='padding-top:20px'>URL: ${element.url}</label>
             <label class="labelArea">GID: ${element.gid}</label>
             <label class="labelArea">PRIORITY: ${element.priority}</label>
             <label class="labelArea">STATUS: ${element.status}</label>
             <label class="labelArea">ADDED: ${element.added}</label>
-            <label class="labelArea">DOWNLOAD: ${download}</label>
+            <label class="labelArea">DOWNLOAD: ${element.download}</label>
             <label class="labelArea">FILE: ${element.file}</label>
             <label class="labelArea">PATH: ${element.path}</label>
             <label class="labelArea">SIZE: ${element.size}</label>
-            <label class="labelArea" style='padding-bottom:20px'>USING: ${element.using}</label></div>
-            <div class="progress-container" style="display:${display}"><div class="progress" id="${element.gid}-progress" style="width:${progress}%">%${progress}</div></div>
-            `
-        
-            return obj
-        }
-        else{
-            return null;
-        }
+            <label class="labelArea" style='padding-bottom:20px'>USING: ${element.using}</label>
+        </div>
+            <div class="progress-container" style="display:${display}">
+            <div class="progress" id="${element.gid}-progress" style="width:${progress}%">%${progress}</div>
+        </div>
+        `
+        return obj
     }
 
-    private calcDownloadProgress(data:Status|null):string|null {
-        if(data!==null && data.download !== null){
-            let totalLength:number = data.download.totalLength;
-            let downloadedLength:number = data.download.completedLength;
-            if(totalLength !== null && downloadedLength !== null) {
-                let progress = (downloadedLength / totalLength) * 100;
-                let progressText = progress.toFixed(2);
-                return progressText;
-            }
-            else{
-                
-            return null;
-            }
-        }
-        else{
-            
-        return null;
-        }
+    private calcProgress(element:Download):string {
+        let totalLength = element.totalLength;
+        let downloadedLength = element.completedLength;
+        let progress = ((downloadedLength / totalLength) * 100).toFixed(2).toString();
+        return progress;
     }
 
-    private getDataExtension(url:string):string|null {
-        let fileExtension:string = url.split(".")[url.split(".").length - 1];
-        let logo:string;
+    private fileExtension(url:string):string {
+        let fileExtension = url.split(".")[url.split(".").length - 1];
         if (fileExtension === "mkv" || fileExtension === "mp4") {
-            logo = "video-logo.png";
-            return logo;
+            return "video-logo.png";
         } else if (fileExtension === "jpg" || fileExtension === "png" || fileExtension === "jpeg" || fileExtension === "svg") {
-            logo = "photo-logo.png";
-            return logo;
+            return "photo-logo.png";
         } else {
-            return null;
-        }
-    } 
-    
-    private displayItem(){
-        if(this.element !== null){
-            let createdItem:string|null = this.createData(this.element);
-
-            if(createdItem !== null){
-                item.innerHTML = createdItem;if (this.element.status === 0) {
-                    activeTab.appendChild(item);
-                } else if (this.element.status === 1) {
-                    activeTab.appendChild(item);
-                } else if (this.element.status === 2) {
-                    finishedTab.appendChild(item);
-                } else if (this.element.status === 3) {
-                    errorTab.appendChild(item);
-                } else if (this.element.status === 4) {
-                    errorTab.appendChild(item);
-                }
-            }
+            return "";
         }
     }
 
-    public updateActiveDownloadProgress() {
+    public updateActiveDownloadProgress():void {
         activeList.forEach(element => {
             let item = document.getElementById(`${element.gid}-progress`)
-            let progress = this.calcDownloadProgress(element.download)
-            if(item!== null) {
+            if(element.download !== null && item !== null){
+                let progress = this.calcProgress(element.download)
                 item.innerText = `%${progress}`;
                 item.style.width = `${progress}%`;
             }
         });
     }
+}
+class AddDownload{
+    url:string;
+    data:{url: string;};
 
-    public async addDownload(url:string):Promise<void> {
-        let data: {url: string;} = { url: `${url}` };
-    
+    constructor(url:string){
+        this.url = url;
+        this.data = { url: `${this.url}` };
+    }
+
+    public async addDownload():Promise<void> {
+
         let response:Response = await fetch(addDownloadUrl, {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify(data),
+            body: JSON.stringify(this.data),
         });
         if (response.status === 200) {
-            alert(`"${url}" added to download list!`);
+            alert(`"${this.url}" added to download list!`);
             location.reload();
         } else {
-            alert(`An error occurred while adding the "${url}" to the download list!`);
+            alert(`An error occurred while adding the "${this.url}" to the download list!`);
         }
     }
+}
+class MarkDownload{
+    urls:string | string[];
+    data:{urls: string | string[];};
 
-    public async markDownload(urls:string | Array<string>):Promise<void>  {
-        let data: {urls: string | string[];} = { urls: urls };
+    constructor(urls:string | string[]){
+        this.urls = urls;
+        this.data = { urls: this.urls };
+    }
+
+    public async markDownload():Promise<void>  {
     
         let response:Response = await fetch(markUrl, {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify(data),
+            body: JSON.stringify(this.data),
         });
         if (response.status === 200) {
-            alert(`"${urls.length}" url marked!`);
+            alert(`"${this.urls.length}" url marked!`);
             location.reload();
         } else {
-            alert(`An error occurred while marking the "${urls.length}" url!`);
+            alert(`An error occurred while marking the "${this.urls.length}" url!`);
         }
     }
+}
+class DeviceIp implements IP{
+    private deviceIP:string;
 
-    public getDownloadItems(){
-        let downloadItems: Promise<Status[] | null> = this.getDownloads();
-        if(downloadItems !== null) {
-            let createdItem: Status | null = this.createDownloadItem();
-    
-            if(createdItem !== null) {
-                let createdData: string | null = this.createData(createdItem);
+    constructor(){
+        this.deviceIP = mainUrl;
+    }
 
-                if(createdData !== null)
-                {
-                    this.getDataExtension(createdItem.url);
-                    this.displayItem();
-                }
-            }
+    public getDeviceIp():string {
+        return this.deviceIP;
+    }
+}
+class DeviceStatus implements STATUS{
+    private deviceStatus:DeviceInformation;
+
+    constructor(){
+        this.deviceStatus = {} as DeviceInformation;
+    }
+    public async getDeviceStatus():Promise<DeviceInformation | null> {
+        let response:Response = await fetch(deviceInfoUrl);
+        if (response.status === 200) {
+            this.deviceStatus = await response.json();
+            return this.deviceStatus
+        }
+        else{
+            return null;
         }
     }
 }
 class DeviceInfo{
-    private deviceIp:string = "";
-    private total_capacity:string = "";
-    private cached:string = "";
-    private time:string = "";
+    private deviceIp: string;
+    private deviceStatus: DeviceInformation|null;
+
+    constructor(deviceIp:string, deviceStatus:DeviceInformation|null) {
+        this.deviceIp = deviceIp;
+        this.deviceStatus = deviceStatus;
+    }
+
+    public getDeviceInfo(){
+        if((this.deviceIp !== null && this.deviceIp !== undefined) && (this.deviceStatus !== null && this.deviceStatus !== undefined)){
+            deviceIpLabel.innerText = `IP: ${this.deviceIp}`;
+            deviceDiskCapacity.innerText = `T. CAPACITY: ${this.deviceStatus.disk.total_capacity}`;
+            deviceDiskCached.innerText = `CACHED: ${this.deviceStatus.disk.cached}`;
+            deviceDiskTimestamp.innerText = this.parseTimestamp(this.deviceStatus.timestamp);
     
-    private getDeviceIp():string | null {
-        let deviceIp:string = mainUrl.split("//")[1]
-        if(deviceIp !== null){
-            this.deviceIp = deviceIp;
-            return this.deviceIp;
-        }
-        else{
-            return null;
+        }else{
+            alert(`An error occurred while getting device information!`);
         }
     }
 
-    private async getDeviceStatus():Promise<DeviceInfo | null> {
-        let response:Response = await fetch(deviceInfoUrl);
-        if (response.status === 200) {
-            let data:DeviceInfo = await response.json();
-            this.total_capacity = data.disk.total_capacity;   
-            this.cached = data.disk.cached;
-            return data;
-        } else {
-            return null;
-        }
-    }
-
-    private parseTimestamp(data:DeviceInfo|null):string|null{
-        if(data !== null){
-            let year:string[] = data.timestamp.split("T")[0].split("-");
+    public parseTimestamp(timestamp:string):string{
+        if(timestamp !== null){
+            let year:string[] = timestamp.split("T")[0].split("-");
             let date:string = `${year[0]}/${year[1]}/${year[2]}`;
-            let hour:string = data.timestamp.split("T")[1].split(".")[0];
-            let timestamp:string = date + " - " + hour;
-            this.time = timestamp;
-            return this.time;
+            let hour:string = timestamp.split("T")[1].split(".")[0];
+            timestamp = date + " - " + hour;
+            return `${timestamp}`;
         }
         else{
-            return null;
+            console.error("An error occurred while parsing timestamp!");
+            return timestamp;
         }
-    }
-
-    public async getDeviceInfo(){
-        let deviceIp = this.getDeviceIp();
-        let deviceStatus = this.getDeviceStatus();
-
-        if(deviceIp !== null)
-        {
-            deviceIpLabel.innerText = `IP: ${deviceIp}`;
-        }
-        if(deviceStatus !== null)
-        {
-            deviceDiskCapacity.innerText = `T. CAPACITY: ${this.total_capacity}`;
-            deviceDiskCached.innerText = `CACHED: ${this.cached}`;
-
-            let time = this.parseTimestamp(await deviceStatus);
-
-            if(time !== null){
-                deviceDiskTimestamp.innerText = `${this.timestamp}`;
-            }
-        }
-        alert(`An error occurred while getting device information!`);
     }
 }
 
-function main(){
+async function main(){
+    let deviceIp: IP = new DeviceIp();
+    let deviceStatus:STATUS = new DeviceStatus();
+
     window.setInterval(async function() {
-        Downloads.prototype.getDownloadItems();
-        DeviceInfo.prototype.getDeviceInfo();
-        Downloads.prototype.updateActiveDownloadProgress();
+        new DownloadList().getDownloads();
+        new DownloadList().updateActiveDownloadProgress();
+        new DeviceInfo(deviceIp.getDeviceIp(),await deviceStatus.getDeviceStatus()).getDeviceInfo();
     }, 1000);
 }
 
 main();
 
 addUrlButton.addEventListener('click', function() {
-    Downloads.prototype.addDownload(addUrlText.value);
+    let add  = new AddDownload(addUrlText.value);
+    add.addDownload();
 })
 
 markUrlButton.addEventListener('click', function() {
     let markList = markUrlText.value.split(",");
-    Downloads.prototype.markDownload(markList);
+    let mark = new MarkDownload(markList);
+    mark.markDownload();
 })
+
+
