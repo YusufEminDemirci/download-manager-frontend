@@ -84,15 +84,15 @@ class DownloadList {
             }
             if (element.status === StatusCode.Waiting) {
                 activeTab.appendChild(item);
-                item.style.backgroundImage = "linear-gradient(to right, #FD9CAF, #AFBCFF)";
+                item.style.backgroundImage = "linear-gradient(to right, #FF8E99, rgba(173,252,234,1))";
             }
             else if (element.status === StatusCode.Downloading) {
                 activeTab.appendChild(item);
-                item.style.backgroundImage = "linear-gradient( 95.2deg, rgba(173,252,234,1) 26.8%, rgba(192,229,246,1) 64% )";
+                item.style.backgroundImage = "linear-gradient( to right, rgba(173,252,234,1), rgba(192,229,246,1)  )";
             }
             else if (element.status === StatusCode.Completed) {
                 finishedTab.appendChild(item);
-                item.style.backgroundImage = "linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%)";
+                item.style.backgroundImage = "linear-gradient(to right, #d4fc79, #64F877 )";
             }
             else if (element.status === StatusCode.Paused || element.status === StatusCode.Error) {
                 errorTab.appendChild(item);
@@ -222,17 +222,17 @@ class DownloadList {
     parseStatus(status) {
         switch (status) {
             case StatusCode.Waiting:
-                return "Waiting...";
+                return "WAITING FOR DOWNLOAD...";
             case StatusCode.Downloading:
-                return "Downloading...";
+                return "DOWNLOADING...";
             case StatusCode.Completed:
-                return "Completed";
+                return "COMPLETED";
             case StatusCode.Paused:
-                return "Paused";
+                return "PAUSED";
             case StatusCode.Error:
-                return "Error !";
+                return "ERROR !";
             default:
-                return "Nan";
+                return "NaN";
         }
     }
     updateActiveDownloadProgress(activeList) {
@@ -325,7 +325,7 @@ class DeviceInfo {
     }
     getDeviceInfo() {
         if ((this.deviceIp !== null && this.deviceIp !== undefined) && (this.deviceStatus !== null && this.deviceStatus !== undefined)) {
-            deviceIpLabel.innerText = `IP: ${this.deviceIp}`;
+            deviceIpLabel.innerText = `Device Ip: ${this.deviceIp}`;
             deviceDiskCapacity.innerText = `Total Capacity: ${this.deviceStatus.disk.total_capacity}`;
             deviceDiskCached.innerText = `Cached: ${this.parseSize(this.deviceStatus.disk.cached)}`;
             deviceDiskTimestamp.innerText = this.parseTimestamp(this.deviceStatus.timestamp);

@@ -2,7 +2,6 @@
     font-family: 'Courier New', Courier, monospace;
     font-weight: bolder;
     margin: 0;
-    padding: 0;
 }
 
 body {
@@ -17,15 +16,16 @@ header {
 }
 
 footer {
+    background-color: rgba(173, 252, 234, 1);
+    color: #3C465A;
+    text-align: center;
+    font-size: 1.5em;
     position: fixed;
     left: 0;
     bottom: 0;
     width: 100%;
-    padding: 5px;
-    background-color: #00D2C8;
-    color: #3C465A;
-    text-align: center;
-    font-size: 1.5em;
+    padding: 2.5px;
+    border-radius: 25px 25px 0 0;
 }
 
 label {
@@ -41,54 +41,63 @@ hr {
 }
 
 h1 {
-    left: 0;
     margin-top: auto;
     margin-bottom: auto;
-    padding-right: 25px;
-    padding-left: 25px;
+    padding-right: 5px;
+    padding-left: 5px;
     font-size: 2.5em;
     border-left: 3px solid #3C465A;
     border-right: 3px solid #3C465A;
 }
 
+#download-inputs {
+    margin-left: auto;
+    right: 0;
+}
+
 .input-div {
-    top: 0;
+    margin: 20px;
     display: flex;
     justify-content: center;
-    padding: 1em 0 1em 0;
+    padding: 0.5em;
 }
 
 .input-button {
-    margin-right: 9rem;
     border: 1px solid #3C465A;
     border-radius: 5px;
     background-color: rgb(0, 255, 255);
     font-size: 1rem;
     padding: 5px;
-    width: 8rem;
+    width: 150px;
 }
 
 .input-text {
     margin-right: 1rem;
     border: 1px solid #3C465A;
     border-radius: 5px;
-    width: 17.5rem;
     text-align: center;
+    width: 300px;
+}
+
+#error-downloads-label,
+#active-downloads-label,
+#finished-downloads-label {
+    border-radius: 0 0 25px 25px;
+    height: 1.5em;
+    font-style: italic;
+    align-items: center;
 }
 
 #error-downloads-label {
     background-color: #ff4653;
-    border-radius: 0 0 25px 25px;
 }
 
 #active-downloads-label {
     background-color: aqua;
-    border-radius: 0 0 25px 25px;
 }
 
 #finished-downloads-label {
     background-color: greenyellow;
-    border-radius: 0 0 25px 25px;
 }
 
 .section {
@@ -155,12 +164,12 @@ h1 {
 }
 
 #device-info {
-    margin-top: auto;
-    margin-bottom: auto;
-    margin-right: 25px;
-    right: 0;
-    font-size: 0.9rem;
-    width: 50%;
+    margin: 20px;
+    left: 0;
+    font-size: 0.75rem;
+    background-color: #f0f0fa;
+    border: 2px solid #3C465A;
+    border-radius: 5px;
 }
 
 #device-status {
@@ -169,15 +178,14 @@ h1 {
     border-top: 1px solid #3C465A;
 }
 
-#dyb-logo {
-    margin-top: auto;
-    margin-bottom: auto;
-    margin-right: 25px;
-    width: 15%;
+.dyb-logo {
+    width: 5%;
 }
 
 #website-info {
-    left: 0;
     display: flex;
-    margin-left: 25px;
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    margin-left: -250px;
 }

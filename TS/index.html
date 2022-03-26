@@ -12,13 +12,22 @@
 </head>
 
 <body>
+    <div id="website-info">
+        <img class="dyb-logo" src="logo.png" alt="dyb-logo" />
+        <h1>Download Manager</h1>
+        <img class="dyb-logo" src="logo.png" alt="dyb-logo" />
+    </div>
 
     <header>
-        <div id="website-info">
-            <img id="dyb-logo" src="logo.png" alt="dyb-logo" />
-            <h1>Download Manager</h1>
+        <div id="device-info">
+            <label id="device-ip"></label>
+            <div id="device-status">
+                <label id="device-disk-capacity"></label>
+                <label id="device-disk-cached"></label>
+                <label id="device-disk-timestamp"></label>
+            </div>
         </div>
-        <div>
+        <div id="download-inputs">
             <div class="input-div" id="add-download">
                 <input type="text" class="input-text" id="add-url-text" placeholder="Url" />
                 <button class="input-button" id="add-button">Add Download</button>
@@ -28,15 +37,6 @@
                 <button class="input-button" id="mark-button">Mark Url</button>
             </div>
         </div>
-        <div id="device-info">
-            <label id="device-ip"></label>
-            <div id="device-status">
-                <label id="device-disk-capacity"></label>
-                <label id="device-disk-cached"></label>
-                <label id="device-disk-timestamp"></label>
-            </div>
-        </div>
-
     </header>
     <hr>
 
