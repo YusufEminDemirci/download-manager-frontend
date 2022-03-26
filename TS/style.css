@@ -35,7 +35,7 @@ label {
 }
 
 hr {
-    height: 1px;
+    height: 2px;
     background-color: #3C465A;
     border: none;
 }
@@ -44,13 +44,15 @@ h1 {
     left: 0;
     margin-top: auto;
     margin-bottom: auto;
-    padding-right: 15px;
+    padding-right: 25px;
     padding-left: 25px;
     font-size: 2.5em;
-    border-right: 2.5px solid #3C465A;
+    border-left: 3px solid #3C465A;
+    border-right: 3px solid #3C465A;
 }
 
 .input-div {
+    top: 0;
     display: flex;
     justify-content: center;
     padding: 1em 0 1em 0;
@@ -76,14 +78,17 @@ h1 {
 
 #error-downloads-label {
     background-color: #ff4653;
+    border-radius: 0 0 25px 25px;
 }
 
 #active-downloads-label {
     background-color: aqua;
+    border-radius: 0 0 25px 25px;
 }
 
 #finished-downloads-label {
     background-color: greenyellow;
+    border-radius: 0 0 25px 25px;
 }
 
 .section {
@@ -95,28 +100,16 @@ h1 {
     margin: 20px;
 }
 
-#error-downloads {
-    float: left;
-    width: 33.33333%;
-    background-color: #fcc9cc;
-}
-
-#active-downloads {
-    float: left;
-    width: 33.33333%;
-    background-color: rgb(186, 255, 255);
-}
-
+#error-downloads,
+#active-downloads,
 #finished-downloads {
     float: left;
     width: 33.33333%;
-    background-color: rgb(216, 253, 161);
 }
 
 .item {
     margin-top: 26px;
     margin-bottom: 20px;
-    background-color: #f0f0fa;
     border: 2px solid #3C465A;
     border-radius: 7.5px;
 }
@@ -165,11 +158,26 @@ h1 {
     margin-top: auto;
     margin-bottom: auto;
     margin-right: 25px;
+    right: 0;
     font-size: 0.9rem;
+    width: 50%;
 }
 
 #device-status {
     margin-top: 10px;
     padding: 5px;
     border-top: 1px solid #3C465A;
+}
+
+#dyb-logo {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 25px;
+    width: 15%;
+}
+
+#website-info {
+    left: 0;
+    display: flex;
+    margin-left: 25px;
 }

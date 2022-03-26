@@ -8,6 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var StatusCode;
+(function (StatusCode) {
+    StatusCode[StatusCode["Waiting"] = 0] = "Waiting";
+    StatusCode[StatusCode["Downloading"] = 1] = "Downloading";
+    StatusCode[StatusCode["Completed"] = 2] = "Completed";
+    StatusCode[StatusCode["Paused"] = 3] = "Paused";
+    StatusCode[StatusCode["Error"] = 4] = "Error";
+})(StatusCode || (StatusCode = {}));
 let addUrlButton = document.getElementById("add-button");
 let addUrlText = document.getElementById("add-url-text");
 let markUrlButton = document.getElementById("mark-button");
@@ -49,7 +57,7 @@ class DownloadList {
             let response = yield fetch(statusUrl);
             if (response.status === 200) {
                 this.data = yield response.json();
-                this.createItem(this.data);
+                this.createItem();
             }
         });
     }
@@ -65,7 +73,7 @@ class DownloadList {
             }
         });
     }
-    createItem(data) {
+    createItem() {
         this.data.forEach((element) => {
             if (!gidList.includes(element.gid)) {
                 item = document.createElement("div");
@@ -74,20 +82,21 @@ class DownloadList {
                 item.setAttribute("id", element.gid);
                 item.innerHTML = this.createItemData(element);
             }
-            if (element.status === 0) {
+            if (element.status === StatusCode.Waiting) {
                 activeTab.appendChild(item);
+                item.style.backgroundImage = "linear-gradient(to right, #FD9CAF, #AFBCFF)";
             }
-            else if (element.status === 1) {
+            else if (element.status === StatusCode.Downloading) {
                 activeTab.appendChild(item);
+                item.style.backgroundImage = "linear-gradient( 95.2deg, rgba(173,252,234,1) 26.8%, rgba(192,229,246,1) 64% )";
             }
-            else if (element.status === 2) {
+            else if (element.status === StatusCode.Completed) {
                 finishedTab.appendChild(item);
+                item.style.backgroundImage = "linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%)";
             }
-            else if (element.status === 3) {
+            else if (element.status === StatusCode.Paused || element.status === StatusCode.Error) {
                 errorTab.appendChild(item);
-            }
-            else if (element.status === 4) {
-                errorTab.appendChild(item);
+                item.style.backgroundImage = "linear-gradient(25deg,#d64c7f,#ee4758 50%)";
             }
         });
     }
@@ -96,10 +105,11 @@ class DownloadList {
         element.file = this.parseFileName(element.file);
         element.path = this.parseFilePath(element.path);
         element.size = this.parseSize(element.size);
+        let statusText = this.parseStatus(element.status);
         let urlLabel = `<label class="labelArea">URL: ${element.url}</label>`;
         let gidLabel = `<label class="labelArea">GID: ${element.gid}</label>`;
         let priorityLabel = `<label class="labelArea">PRIORITY: ${element.priority}</label>`;
-        let statusLabel = `<label class="labelArea">STATUS: ${element.status}</label>`;
+        let statusLabel = `<label class="labelArea">STATUS: ${statusText}</label>`;
         let addedLabel = `<label class="labelArea">ADDED: ${element.added}</label>`;
         let downloadLabel = `<label class="labelArea">DOWNLOAD: ${element.download}</label>`;
         let fileLabel = `<label class="labelArea">FILE: ${element.file}</label>`;
@@ -118,7 +128,7 @@ class DownloadList {
             }
         }
         element.url = this.parseExtension(element.url);
-        if (element.download === null) {
+        if (element.status === 2) {
             chart_detail = `
             <img class="file-type" src="${element.url}" alt="type-img"></img>
             <div class='item-detail'>
@@ -129,7 +139,7 @@ class DownloadList {
             </div>
             `;
         }
-        else if (element.download !== null) {
+        else if (element.status !== 2) {
             chart_detail = `
             <img class="file-type" src="${element.url}" alt="type-img"></img>
             <div class='item-detail'>
@@ -207,6 +217,22 @@ class DownloadList {
         }
         else {
             return "";
+        }
+    }
+    parseStatus(status) {
+        switch (status) {
+            case StatusCode.Waiting:
+                return "Waiting...";
+            case StatusCode.Downloading:
+                return "Downloading...";
+            case StatusCode.Completed:
+                return "Completed";
+            case StatusCode.Paused:
+                return "Paused";
+            case StatusCode.Error:
+                return "Error !";
+            default:
+                return "Nan";
         }
     }
     updateActiveDownloadProgress(activeList) {
@@ -300,12 +326,12 @@ class DeviceInfo {
     getDeviceInfo() {
         if ((this.deviceIp !== null && this.deviceIp !== undefined) && (this.deviceStatus !== null && this.deviceStatus !== undefined)) {
             deviceIpLabel.innerText = `IP: ${this.deviceIp}`;
-            deviceDiskCapacity.innerText = `T. CAPACITY: ${this.deviceStatus.disk.total_capacity}`;
-            deviceDiskCached.innerText = `CACHED: ${this.deviceStatus.disk.cached}`;
+            deviceDiskCapacity.innerText = `Total Capacity: ${this.deviceStatus.disk.total_capacity}`;
+            deviceDiskCached.innerText = `Cached: ${this.parseSize(this.deviceStatus.disk.cached)}`;
             deviceDiskTimestamp.innerText = this.parseTimestamp(this.deviceStatus.timestamp);
         }
         else {
-            alert(`An error occurred while getting device information!`);
+            console.error(`An error occurred while getting device information!`);
         }
     }
     parseTimestamp(timestamp) {
@@ -320,6 +346,20 @@ class DeviceInfo {
             console.error("An error occurred while parsing timestamp!");
             return timestamp;
         }
+    }
+    parseSize(fSize) {
+        if (fSize !== null) {
+            fSize = fSize.split(".")[0];
+            let mbSize = Number((Number(fSize) / 1024).toFixed(3));
+            if (mbSize >= 1024) {
+                let gbSize = (Number(mbSize) / 1024).toFixed(3);
+                return gbSize + " TB";
+            }
+            else {
+                return mbSize + " GB";
+            }
+        }
+        return "Nan";
     }
 }
 function main() {
