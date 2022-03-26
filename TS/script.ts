@@ -75,8 +75,6 @@ let activeTab = <HTMLInputElement>document.getElementById("active");
 let finishedTab = <HTMLInputElement>document.getElementById("finished");
 let item: HTMLDivElement;
 
-let gidList: string[]= [];
-let activeList: Status[] = [];
 
 const mainUrl = "http://127.0.0.1:6802";
 const deviceInfoUrl = new URL(`${mainUrl}/`).toString();
@@ -84,6 +82,8 @@ const statusUrl = new URL(`${mainUrl}/download/status`).toString();
 const activeUrl = new URL(`${mainUrl}/download/status/active`).toString();
 const addDownloadUrl = new URL(`${mainUrl}/download/add`).toString();
 const markUrl = new URL(`${mainUrl}/download/mark`).toString();
+
+let gidList:string[] = [];
 
 let headers = {
     "Content-Type": "application/json",
@@ -94,17 +94,20 @@ class DownloadList{
     progress:string;
     download:Download|undefined;
     display:string;
+    activeList: Status[];
     
     constructor(){
         this.data = [] as Status[];
         this.progress = "0";
         this.download;
         this.display = "none";
+        this.activeList = [] as Status[];
     }
 
     public getDownloads(){
         this.getList();
-        this.updateActiveDownloadProgress();
+        this.getActiveList();
+        this.updateActiveDownloadProgress(this.activeList);
     }
 
     private async getList() {
@@ -112,6 +115,17 @@ class DownloadList{
         if (response.status === 200) {
             this.data = await response.json();
             this.createItem(this.data);
+        }
+    }
+
+    private async getActiveList() {
+        let response:Response = await fetch(activeUrl);
+        if (response.status === 200) {
+            this.data = await response.json();
+            this.data.forEach((element:Status) => {
+                this.activeList.push(element);
+                this.updateActiveDownloadProgress(this.activeList);
+            })
         }
     }
 
@@ -141,6 +155,26 @@ class DownloadList{
 
     private createItemData(element:Status):string {
 
+        element.added = this.parseTimestamp(element.added);
+        element.file = this.parseFileName(element.file);
+        element.path = this.parseFilePath(element.path);
+        element.size = this.parseSize(element.size);
+
+        let urlLabel = `<label class="labelArea">URL: ${element.url}</label>`;
+        let gidLabel = `<label class="labelArea">GID: ${element.gid}</label>`;
+        let priorityLabel = `<label class="labelArea">PRIORITY: ${element.priority}</label>`;
+        let statusLabel = `<label class="labelArea">STATUS: ${element.status}</label>`;
+        let addedLabel = `<label class="labelArea">ADDED: ${element.added}</label>`;
+        let downloadLabel = `<label class="labelArea">DOWNLOAD: ${element.download}</label>`;
+        let fileLabel = `<label class="labelArea">FILE: ${element.file}</label>`;
+        let pathLabel = `<label class="labelArea">PATH: ${element.path}</label>`;
+        let sizeLabel = `<label class="labelArea">SIZE: ${element.size}</label>`;
+        let usingLabel = `<label class="labelArea">USING: ${element.using}</label>`;
+        let topPaddingLabel = `<label class="labelArea" style='padding-top:20px'></label>`;
+        let bottomPaddingLabel = `<label class="labelArea" style='padding-bottom:20px'></label>`;
+        let chart_detail = "";
+
+
         let display = "none";
         let progress = "0";
 
@@ -151,37 +185,99 @@ class DownloadList{
             }
         }
 
-        let src = this.fileExtension(element.url);
+        element.url = this.parseExtension(element.url);
 
-        let obj = `
-        <img class="file-type" src="${src}" alt="type-img"></img>
-        <div class='item-detail'>
-            <label class="labelArea" style='padding-top:20px'>URL: ${element.url}</label>
-            <label class="labelArea">GID: ${element.gid}</label>
-            <label class="labelArea">PRIORITY: ${element.priority}</label>
-            <label class="labelArea">STATUS: ${element.status}</label>
-            <label class="labelArea">ADDED: ${element.added}</label>
-            <label class="labelArea">DOWNLOAD: ${element.download}</label>
-            <label class="labelArea">FILE: ${element.file}</label>
-            <label class="labelArea">PATH: ${element.path}</label>
-            <label class="labelArea">SIZE: ${element.size}</label>
-            <label class="labelArea" style='padding-bottom:20px'>USING: ${element.using}</label>
-        </div>
+        if(element.download === null){
+            chart_detail = `
+            <img class="file-type" src="${element.url}" alt="type-img"></img>
+            <div class='item-detail'>
+                ${topPaddingLabel}${urlLabel}${fileLabel}${sizeLabel}${addedLabel}${gidLabel}${priorityLabel}${statusLabel}${usingLabel}${pathLabel}${bottomPaddingLabel}
+            </div>
             <div class="progress-container" style="display:${display}">
-            <div class="progress" id="${element.gid}-progress" style="width:${progress}%">%${progress}</div>
-        </div>
-        `
-        return obj
+                <div class="progress" id="${element.gid}-progress" style="width:${progress}%">%${progress}</div>
+            </div>
+            `
+        }else if(element.download !== null){
+            chart_detail = `
+            <img class="file-type" src="${element.url}" alt="type-img"></img>
+            <div class='item-detail'>
+                ${topPaddingLabel}${urlLabel}${addedLabel}${gidLabel}${priorityLabel}${statusLabel}${bottomPaddingLabel}
+            </div>
+            <div class="progress-container" style="display:${display}">
+                <div class="progress" id="${element.gid}-progress" style="width:${progress}%">%${progress}</div>
+            </div>
+            `
+        }
+        return chart_detail;
     }
 
-    private calcProgress(element:Download):string {
-        let totalLength = element.totalLength;
-        let downloadedLength = element.completedLength;
-        let progress = ((downloadedLength / totalLength) * 100).toFixed(2).toString();
-        return progress;
+    private calcProgress(element:Download|null):string {
+        if(element !== null) {{
+            let totalLength = element.totalLength;
+            let downloadedLength = element.completedLength;
+            let progress = ((downloadedLength / totalLength) * 100).toFixed(2).toString();
+            return progress;
+        }}
+        return "NaN";
     }
 
-    private fileExtension(url:string):string {
+    private parseFileName(fName:string|null):string{
+
+        if(fName !== null)
+        {
+            let fileName = fName.split(".");
+            return fileName[0];
+        }
+        return "Nan";
+    }
+
+    private parseFilePath(fPath:string|null):string{
+
+        if(fPath !== null)
+        {
+            let filePath = fPath.split("/duyurubu_client");
+
+            return ".../duyurubu_client" + filePath[1];
+        }
+        return "Nan";
+    }
+
+    private parseSize(fSize:string|null):string{
+
+        if(fSize !== null)
+        {
+            let kbSize:Number = Number((Number(fSize)/1024).toFixed(3));
+            let mbSize:Number = Number((Number(kbSize)/1024).toFixed(3));
+
+            if(mbSize >= 1024){
+                let gbSize = (Number(mbSize)/1024).toFixed(3);
+                return gbSize  + " GB";
+            }
+            else if(kbSize >= 1024){
+                let mbSize = (Number(kbSize)/1024).toFixed(3);
+                return mbSize  + " MB";
+            }
+            else{
+                return kbSize + " KB";
+            }
+        }
+        return "Nan";
+    }
+    
+    private parseTimestamp(fTimestamp:string):string{
+        if(fTimestamp !== null){
+            let year:string[] = fTimestamp.split("T")[0].split("-");
+            let date:string = `${year[0]}/${year[1]}/${year[2]}`;
+            let hour:string = fTimestamp.split("T")[1].split(".")[0];
+            fTimestamp = date + " - " + hour;
+            return `${fTimestamp}`;
+        }
+        else{
+            return "Nan";
+        }
+    }
+
+    private parseExtension(url:string):string {
         let fileExtension = url.split(".")[url.split(".").length - 1];
         if (fileExtension === "mkv" || fileExtension === "mp4") {
             return "video-logo.png";
@@ -192,15 +288,17 @@ class DownloadList{
         }
     }
 
-    public updateActiveDownloadProgress():void {
-        activeList.forEach(element => {
-            let item = document.getElementById(`${element.gid}-progress`)
-            if(element.download !== null && item !== null){
-                let progress = this.calcProgress(element.download)
-                item.innerText = `%${progress}`;
-                item.style.width = `${progress}%`;
-            }
-        });
+    private updateActiveDownloadProgress(activeList:Status[]):void {
+        if(activeList !== null || activeList !== undefined) {{
+            activeList.forEach(element => {
+                let item = document.getElementById(`${element.gid}-progress`)
+                if(item !== null){
+                    let progress = this.calcProgress(element.download)
+                    item.innerText = `%${progress}`;
+                    item.style.width = `${progress}%`;
+                }
+            });
+        }}
     }
 }
 class AddDownload{
@@ -221,7 +319,6 @@ class AddDownload{
         });
         if (response.status === 200) {
             alert(`"${this.url}" added to download list!`);
-            location.reload();
         } else {
             alert(`An error occurred while adding the "${this.url}" to the download list!`);
         }
@@ -321,7 +418,6 @@ async function main(){
 
     window.setInterval(async function() {
         new DownloadList().getDownloads();
-        new DownloadList().updateActiveDownloadProgress();
         new DeviceInfo(deviceIp.getDeviceIp(),await deviceStatus.getDeviceStatus()).getDeviceInfo();
     }, 1000);
 }
