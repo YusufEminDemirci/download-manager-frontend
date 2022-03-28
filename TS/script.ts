@@ -66,6 +66,8 @@ enum StatusCode {
     Error = 4,
 }
 
+
+
 let addUrlButton = <HTMLInputElement>document.getElementById("add-button");
 let addUrlText = <HTMLInputElement>document.getElementById("add-url-text");
 
@@ -163,62 +165,79 @@ class DownloadList{
     }
 
     private createItemData(element:Status):string {
+        let imgLabel = this.createLabel("img",element);
+        let urlLabel = this.createLabel("url",element);
+        let gidLabel = this.createLabel("gid",element);
+        let priorityLabel = this.createLabel("priority",element);
+        let statusLabel = this.createLabel("status",element);
+        let addedLabel = this.createLabel("added",element);
+        let downloadLabel = this.createLabel("download",element);
+        let fileLabel = this.createLabel("file",element);
+        let pathLabel = this.createLabel("path",element);
+        let sizeLabel = this.createLabel("size",element);
+        let usingLabel = this.createLabel("using", element);
+        let topPaddingLabel = this.createLabel("topPaddingLabel", element);
+        let bottomPaddingLabel = this.createLabel("bottomPaddingLabel", element);
+        let progressLabel = this.createLabel("progressBar",element);
 
-        element.added = this.parseTimestamp(element.added);
-        element.file = this.parseFileName(element.file);
-        element.path = this.parseFilePath(element.path);
-        element.size = this.parseSize(element.size);
-        let statusText = this.parseStatus(element.status);
+        let chart_detail = `${topPaddingLabel}${imgLabel}${topPaddingLabel}${urlLabel}`;
 
-        let urlLabel = `<label class="labelArea">URL: ${element.url}</label>`;
-        let gidLabel = `<label class="labelArea">GID: ${element.gid}</label>`;
-        let priorityLabel = `<label class="labelArea">PRIORITY: ${element.priority}</label>`;
-        let statusLabel = `<label class="labelArea">STATUS: ${statusText}</label>`;
-        let addedLabel = `<label class="labelArea">ADDED: ${element.added}</label>`;
-        let downloadLabel = `<label class="labelArea">DOWNLOAD: ${element.download}</label>`;
-        let fileLabel = `<label class="labelArea">FILE: ${element.file}</label>`;
-        let pathLabel = `<label class="labelArea">PATH: ${element.path}</label>`;
-        let sizeLabel = `<label class="labelArea">SIZE: ${element.size}</label>`;
-        let usingLabel = `<label class="labelArea">USING: ${element.using}</label>`;
-        let topPaddingLabel = `<label class="labelArea" style='padding-top:20px'></label>`;
-        let bottomPaddingLabel = `<label class="labelArea" style='padding-bottom:20px'></label>`;
-        let chart_detail = "";
-
-
-        let display = "none";
-        let progress = "0";
-
-        if (element.download !== null) {
-            progress = this.calcProgress(element.download);
-            if (progress !== "NaN") {
-                display = "block";
-            }
-        }
-
-        element.url = this.parseExtension(element.url);
-
-        if(element.status === 2){
-            chart_detail = `
-            <img class="file-type" src="${element.url}" alt="type-img"></img>
-            <div class='item-detail'>
-                ${topPaddingLabel}${urlLabel}${fileLabel}${sizeLabel}${addedLabel}${gidLabel}${priorityLabel}${statusLabel}${usingLabel}${pathLabel}${bottomPaddingLabel}
-            </div>
-            <div class="progress-container" style="display:${display}">
-                <div class="progress" id="${element.gid}-progress" style="width:${progress}%">%${progress}</div>
-            </div>
-            `
-        }else if(element.status !== 2){
-            chart_detail = `
-            <img class="file-type" src="${element.url}" alt="type-img"></img>
-            <div class='item-detail'>
-                ${topPaddingLabel}${urlLabel}${addedLabel}${gidLabel}${priorityLabel}${statusLabel}${bottomPaddingLabel}
-            </div>
-            <div class="progress-container" style="display:${display}">
-                <div class="progress" id="${element.gid}-progress" style="width:${progress}%">%${progress}</div>
-            </div>
-            `
+        switch (element.status) {
+            case StatusCode.Completed:
+                return chart_detail += `${fileLabel}${sizeLabel}${addedLabel}${gidLabel}${priorityLabel}${usingLabel}${pathLabel}${bottomPaddingLabel}</div>`;
+            case StatusCode.Downloading:
+            case StatusCode.Waiting:
+            case StatusCode.Paused:
+                return chart_detail += `${addedLabel}${gidLabel}${priorityLabel}${statusLabel}${bottomPaddingLabel}</div>${progressLabel}`;
+            case StatusCode.Error:
+                return chart_detail += `${addedLabel}${gidLabel}${priorityLabel}${bottomPaddingLabel}</div>`;
         }
         return chart_detail;
+    }
+
+    private createLabel(type: string, element: Status) {
+        switch (type) {
+            case "img":
+                element.url = this.parseExtension(element.url);
+                return `<img class="file-type" src="${element.url}" alt="type-img"></img>
+                        <div class='item-detail'>`;
+            case "url":
+                return `<label class="labelArea">URL: ${element.url}</label>`;
+            case "gid":
+                return `<label class="labelArea">GID: ${element.gid}</label>`;
+            case "priority":
+                return `<label class="labelArea">PRIORITY: ${element.priority}</label>`;
+            case "status":
+                let statusText:string = this.parseStatus(element.status);
+                return `<label class="labelArea">STATUS: ${statusText}</label>`;
+            case "added":
+                    element.added = this.parseTimestamp(element.added);
+                return `<label class="labelArea">ADDED: ${element.added}</label>`;
+            case "download":
+                return `<label class="labelArea">DOWNLOAD: ${element.download}</label>`;
+            case "file":
+                element.file = this.parseFileName(element.file);
+                return `<label class="labelArea">FILE: ${element.file}</label>`;
+            case "path":
+                element.path = this.parseFilePath(element.path);
+                return `<label class="labelArea">PATH: ${element.path}</label>`;
+            case "size":
+                element.size = this.parseSize(element.size);
+                return `<label class="labelArea">SIZE: ${element.size}</label>`;
+            case "using":
+                return `<label class="labelArea">USING: ${element.using}</label>`;
+            case "topPaddingLabel":
+                return `<label class="labelArea" style='padding-top:20px'></label>`;
+            case "bottomPaddingLabel":
+                return `<label class="labelArea" style='padding-bottom:20px'></label>`;
+            case "progressBar":let progress = "0";
+                if (element.download !== null) {
+                    progress = this.calcProgress(element.download);
+                }
+                return `<div class="progress-container" style="display:block">
+                            <div class="progress" id="${element.gid}-progress" style="width:${progress}%">%${progress}</div>
+                        </div>`;
+        }
     }
 
     private calcProgress(element:Download|null):string {
@@ -277,9 +296,9 @@ class DownloadList{
     private parseTimestamp(fTimestamp:string):string{
         if(fTimestamp !== null){
             let year:string[] = fTimestamp.split("T")[0].split("-");
-            let date:string = `${year[0]}/${year[1]}/${year[2]}`;
-            let hour:string = fTimestamp.split("T")[1].split(".")[0];
-            fTimestamp = date + " - " + hour;
+            let date: string = `${year[0]}/${year[1]}/${year[2]}`;
+            let hour:string = fTimestamp.split("T")[1];
+            fTimestamp = `${date} - ${hour}`;
             return `${fTimestamp}`;
         }
         else{
@@ -438,19 +457,20 @@ class DeviceInfo{
         }
     }
 
-    private parseSize(fSize:string|null):string{
+    private parseSize(fSize: string | null): string{
+        let tbSize = 1048576;
+        let gbSize = 1024;
+        if(fSize !== null){
+            let size = Number(fSize.split(" ")[0]);
 
-        if(fSize !== null)
-        {
-            fSize = fSize.split(".")[0];
-            let mbSize:Number = Number((Number(fSize)/1024).toFixed(3));
-
-            if(mbSize >= 1024){
-                let gbSize = (Number(mbSize)/1024).toFixed(3);
-                return gbSize  + " TB";
+            if(size >= tbSize){
+                return (Number((Number(size)/1024).toFixed(3))/1024).toFixed(3) + " TB";
+            }
+            else if(size >= gbSize){
+                return (Number(size)/1024).toFixed(3) + " GB";
             }
             else{
-                return mbSize + " GB";
+                return Number(size) + " MB";
             }
         }
         return "Nan";
