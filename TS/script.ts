@@ -154,7 +154,7 @@ class DownloadList{
                 item.style.backgroundImage = "linear-gradient( to right, rgba(173,252,234,1), rgba(192,229,246,1)  )";
             }else if (element.status === StatusCode.Completed) {
                 finishedTab.appendChild(item);
-                item.style.backgroundImage = "linear-gradient(to right, #d4fc79, #64F877 )";
+                item.style.backgroundImage = "linear-gradient(to right, #77F788, #d4fc79 )";
             } else if (element.status === StatusCode.Paused || element.status === StatusCode.Error) {
                 errorTab.appendChild(item);
                 item.style.backgroundImage = "linear-gradient(25deg,#d64c7f,#ee4758 50%)";

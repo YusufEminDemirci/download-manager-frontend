@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" type="text/css" href="loading-bar.css" />
-    <title>Download Manager</title>
+    <title>Download Manager API</title>
 </head>
 
 <body>
 
     <header>
-        <div id="device-info-area">
+        <div class="header-area" id="device-info-area">
             <div id="device-info">
                 <label id="device-ip"></label>
                 <div id="device-status">
@@ -24,12 +24,16 @@
             </div>
         </div>
 
-        <div id="dyb-area">
-            <img class="dyb-logo" src="logo.png" alt="dyb-logo" />
-            <h1>Download Manager</h1>
+        <div class="header-area" id="dyb-area">
+            <div style="display: flex; justify-content: center;">
+                <img class="dyb-logo" src="logo.png" alt="dyb-logo" />
+            </div>
+            <div style="display: flex; justify-content: center">
+                <h1>Download Manager API</h1>
+            </div>
         </div>
 
-        <div id="download-inputs">
+        <div class="header-area" id="download-inputs">
             <div class="input-div" id="add-download">
                 <input type="text" class="input-text" id="add-url-text" placeholder="Url" />
                 <button class="input-button" id="add-button">Add Download</button>
@@ -40,8 +44,6 @@
             </div>
         </div>
     </header>
-
-    <hr>
 
     <section class="section" id="error-downloads">
         <label id="error-downloads-label">Error</label>

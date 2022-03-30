@@ -92,7 +92,7 @@ class DownloadList {
             }
             else if (element.status === StatusCode.Completed) {
                 finishedTab.appendChild(item);
-                item.style.backgroundImage = "linear-gradient(to right, #d4fc79, #64F877 )";
+                item.style.backgroundImage = "linear-gradient(to right, #77F788, #d4fc79 )";
             }
             else if (element.status === StatusCode.Paused || element.status === StatusCode.Error) {
                 errorTab.appendChild(item);
