@@ -115,7 +115,7 @@ class DownloadList {
         let topPaddingLabel = this.createLabel("topPaddingLabel", element);
         let bottomPaddingLabel = this.createLabel("bottomPaddingLabel", element);
         let progressLabel = this.createLabel("progressBar", element);
-        let chart_detail = `${topPaddingLabel}${imgLabel}${topPaddingLabel}${urlLabel}`;
+        let chart_detail = `${imgLabel}${topPaddingLabel}${urlLabel}`;
         switch (element.status) {
             case StatusCode.Completed:
                 return chart_detail += `${fileLabel}${sizeLabel}${addedLabel}${gidLabel}${priorityLabel}${usingLabel}${pathLabel}${bottomPaddingLabel}</div>`;

@@ -7,26 +7,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" type="text/css" href="loading-bar.css" />
-
     <title>Download Manager</title>
 </head>
 
 <body>
-    <div id="website-info">
-        <img class="dyb-logo" src="logo.png" alt="dyb-logo" />
-        <h1>Download Manager</h1>
-        <img class="dyb-logo" src="logo.png" alt="dyb-logo" />
-    </div>
 
     <header>
-        <div id="device-info">
-            <label id="device-ip"></label>
-            <div id="device-status">
-                <label id="device-disk-capacity"></label>
-                <label id="device-disk-cached"></label>
-                <label id="device-disk-timestamp"></label>
+        <div id="device-info-area">
+            <div id="device-info">
+                <label id="device-ip"></label>
+                <div id="device-status">
+                    <label id="device-disk-capacity"></label>
+                    <label id="device-disk-cached"></label>
+                    <label id="device-disk-timestamp"></label>
+                </div>
             </div>
         </div>
+
+        <div id="dyb-area">
+            <img class="dyb-logo" src="logo.png" alt="dyb-logo" />
+            <h1>Download Manager</h1>
+        </div>
+
         <div id="download-inputs">
             <div class="input-div" id="add-download">
                 <input type="text" class="input-text" id="add-url-text" placeholder="Url" />
@@ -38,30 +40,27 @@
             </div>
         </div>
     </header>
+
     <hr>
 
     <section class="section" id="error-downloads">
         <label id="error-downloads-label">Error</label>
-        <div class="item-container" id="error">
-        </div>
+        <div class="item-container" id="error"></div>
     </section>
 
     <section class="section" id="active-downloads">
         <label id="active-downloads-label">Active / Waiting</label>
-        <div class="item-container" id="active">
-        </div>
+        <div class="item-container" id="active"></div>
     </section>
 
     <section class="section" id="finished-downloads">
         <label id="finished-downloads-label">Completed</label>
-        <div class="item-container" id="finished">
-        </div>
+        <div class="item-container" id="finished"></div>
     </section>
-
-    <footer>İŞİMİZBU A.Ş.</footer>
 
     <script src="loading-bar.js"></script>
     <script src="script.js"></script>
+
 </body>
 
 </html>

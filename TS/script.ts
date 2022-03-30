@@ -66,8 +66,6 @@ enum StatusCode {
     Error = 4,
 }
 
-
-
 let addUrlButton = <HTMLInputElement>document.getElementById("add-button");
 let addUrlText = <HTMLInputElement>document.getElementById("add-url-text");
 
@@ -180,7 +178,7 @@ class DownloadList{
         let bottomPaddingLabel = this.createLabel("bottomPaddingLabel", element);
         let progressLabel = this.createLabel("progressBar",element);
 
-        let chart_detail = `${topPaddingLabel}${imgLabel}${topPaddingLabel}${urlLabel}`;
+        let chart_detail = `${imgLabel}${topPaddingLabel}${urlLabel}`;
 
         switch (element.status) {
             case StatusCode.Completed:

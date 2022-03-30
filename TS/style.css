@@ -15,19 +15,6 @@ header {
     background-color: bisque;
 }
 
-footer {
-    background-color: rgba(173, 252, 234, 1);
-    color: #3C465A;
-    text-align: center;
-    font-size: 1.5em;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    padding: 2.5px;
-    border-radius: 25px 25px 0 0;
-}
-
 label {
     display: flex;
     justify-content: center;
@@ -47,12 +34,6 @@ h1 {
     padding-left: 5px;
     font-size: 2.5em;
     border-left: 3px solid #3C465A;
-    border-right: 3px solid #3C465A;
-}
-
-#download-inputs {
-    margin-left: auto;
-    right: 0;
 }
 
 .input-div {
@@ -102,18 +83,13 @@ h1 {
 
 .section {
     height: 100%;
+    float: left;
+    width: 33.33333%;
 }
 
 .item-container {
     display: block;
     margin: 20px;
-}
-
-#error-downloads,
-#active-downloads,
-#finished-downloads {
-    float: left;
-    width: 33.33333%;
 }
 
 .item {
@@ -142,8 +118,9 @@ h1 {
 
 .progress-container {
     height: 1rem;
+    border: 1px solid #3C465A;
     border-radius: 0.4rem;
-    background: #3C465A;
+    background: #f0f0fa;
     margin-left: 10%;
     margin-right: 10%;
     margin-top: -10px;
@@ -154,22 +131,29 @@ h1 {
     height: 100%;
     width: 0;
     border-radius: 0.4rem;
-    background: #ff4754;
+    background: greenyellow;
     transition: width 0.4s ease;
     text-align: center;
 }
 
 .progress {
-    color: #f0f0fa;
+    color: #3C465A;
 }
 
 #device-info {
-    margin: 20px;
+    padding: 10px;
     left: 0;
     font-size: 0.75rem;
     background-color: #f0f0fa;
     border: 2px solid #3C465A;
     border-radius: 5px;
+}
+
+#device-info-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 33%;
 }
 
 #device-status {
@@ -179,13 +163,20 @@ h1 {
 }
 
 .dyb-logo {
-    width: 5%;
+    width: 100px;
+    height: 125px;
 }
 
-#website-info {
+#dyb-area {
+    margin: auto;
     display: flex;
-    position: fixed;
-    top: 30px;
-    left: 50%;
-    margin-left: -250px;
+    justify-content: center;
+    align-items: center;
+    width: 33%;
+}
+
+#download-inputs {
+    margin-left: auto;
+    right: 0;
+    width: 33%;
 }
